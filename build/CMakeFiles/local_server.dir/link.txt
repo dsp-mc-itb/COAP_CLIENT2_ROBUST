@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/local_server.dir/src/server.c.o -o local_server   -L/usr/local/lib  -Wl,-rpath,/usr/local/lib -lm -lpthread -lcoap-3-openssl 
