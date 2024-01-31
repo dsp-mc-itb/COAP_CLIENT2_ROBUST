@@ -192,18 +192,28 @@ static void hnd_get_testing_q_block_init(coap_resource_t *resource,
   coap_add_option(response, COAP_OPTION_Q_BLOCK2, coap_encode_var_safe(buf, sizeof(buf),(0 << 4|0 << 3|0)), buf);                          
   coap_pdu_set_code(response, COAP_RESPONSE_CODE(200));
 }
-#define NON_TIMEOUT (coap_fixed_point_t){1,0}
+
+#define ACK_TIMEOUT ((coap_fixed_point_t){2,0})
+#define ACK_RANDOM_FACTOR ((coap_fixed_point_t){1,0})
+#define NON_TIMEOUT (coap_fixed_point_t){2,0}
 #define NON_RECEIVE_TIMEOUT ((coap_fixed_point_t){4,0})
+#define MAX_RETRANSMIT 4
+#define MAX_PAYLOADS_SET 10
+#define NSTART 1
 
 static void hnd_put_image(coap_resource_t *resource,
                           coap_session_t *session,
                           const coap_pdu_t *request,
                           const coap_string_t *query COAP_UNUSED,
                           coap_pdu_t *response) {   
-    printf("============ INCOMING REQUEST=============\n\n");    
-    printf("\n");  
+      
+    coap_session_set_ack_timeout(session, ACK_TIMEOUT );
+    coap_session_set_ack_random_factor(session, ACK_RANDOM_FACTOR);
     coap_session_set_non_timeout(session,NON_TIMEOUT);
     coap_session_set_non_receive_timeout(session,NON_RECEIVE_TIMEOUT);
+    coap_session_set_max_payloads(session, MAX_PAYLOADS_SET);
+    coap_session_set_nstart(session,NSTART);	
+    
     size_t size;
     size_t offset;
     size_t total;
@@ -211,16 +221,16 @@ static void hnd_put_image(coap_resource_t *resource,
     coap_block_t block;
     coap_opt_t *option;
     coap_opt_iterator_t opt_iter;
-    printf("Message Type : %x\n",coap_pdu_get_type(request));
-    printf("Code : %x\n",coap_pdu_get_code(request));
-    printf("Mid : %x\n",coap_pdu_get_mid(request));
-    printf("Token : %x\n",coap_pdu_get_token(request));
+    // printf("Message Type : %x\n",coap_pdu_get_type(request));
+    // printf("Code : %x\n",coap_pdu_get_code(request));
+    // printf("Mid : %x\n",coap_pdu_get_mid(request));
+    // printf("Token : %x\n",coap_pdu_get_token(request));
 
      coap_option_iterator_init(request, &opt_iter, COAP_OPT_ALL);
-        while ((option = coap_option_next(&opt_iter))) {
-            printf("A: Option %d, Length %u\n",
-             opt_iter.number, coap_opt_length(option));
-        }
+       // while ((option = coap_option_next(&opt_iter))) {
+            //printf("A: Option %d, Length %u\n",
+             //opt_iter.number, coap_opt_length(option));
+       // }
     // printf("Get Data : %x \n",coap_get_data_large(request, &size, &data, &offset, &total));
     // printf("get data : %s\n",data);
     
@@ -298,10 +308,7 @@ static void hnd_put_image(coap_resource_t *resource,
     }
   }
   else {
-    printf("get size : %d\n",size);
-    printf("get offset : %d\n",offset);
-    printf("get total : %d\n",total);
-    /* single body of data received */
+      /* single body of data received */
     data_so_far = coap_new_binary(size);
     if (data_so_far) {
       memcpy(data_so_far->s, data, size);
@@ -363,8 +370,8 @@ int main(int argc, char **argv) {
     char addr_str[NI_MAXHOST] = "::";
     char port_str[NI_MAXSERV] = "5683";
     int opt;
-    //coap_log_t log_level = LOG_WARNING;
-    coap_log_t log_level = 7;
+    //coap_log_t log_level = LOG_DEBUG;
+    coap_log_t log_level = 0;
     unsigned wait_ms;
     time_t t_last = 0;
     int coap_fd;
