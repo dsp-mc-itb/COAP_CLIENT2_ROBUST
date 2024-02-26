@@ -414,6 +414,8 @@ message_handler(coap_session_t *session COAP_UNUSED,
     return COAP_RESPONSE_OK;
   }
 
+  printf("SEAN\n");
+
   if (rcv_type == COAP_MESSAGE_RST) {
     coap_log_info("got RST\n");
     return COAP_RESPONSE_OK;
@@ -433,7 +435,9 @@ message_handler(coap_session_t *session COAP_UNUSED,
     }
 
     if (coap_get_data_large(received, &len, &databuf, &offset, &total)) {
+      // printf("ssaaas\n");
       append_to_output(databuf, len);
+      // printf("sss\n");
       if ((len + offset == total) && add_nl)
         append_to_output((const uint8_t *)"\n", 1);
     }
@@ -465,8 +469,8 @@ message_handler(coap_session_t *session COAP_UNUSED,
       if (coap_get_data_large(received, &len, &databuf, &offset, &total)) {
         fprintf(stderr, " ");
         while (len--) {
-          fprintf(stderr, "%c", isprint(*databuf) ? *databuf : '.');
-          databuf++;
+          // fprintf(stderr, "%c", isprint(*databuf) ? *databuf : '.');
+          // databuf++;
         }
       }
       fprintf(stderr, "\n");
@@ -1530,8 +1534,8 @@ get_session(coap_context_t *ctx,
                  "/tmp/coap-client.%d", (int)getpid());
         if (!coap_address_set_unix_domain(&bind_addr, (const uint8_t *)buf,
                                           strlen(buf))) {
-          fprintf(stderr, "coap_address_set_unix_domain: %s: failed\n",
-                  buf);
+          // fprintf(stderr, "coap_address_set_unix_domain: %s: failed\n",
+          //         buf);
           remove(buf);
           return NULL;
         }
