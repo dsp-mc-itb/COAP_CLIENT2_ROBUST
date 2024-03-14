@@ -136,12 +136,12 @@ method_t method = 1;                    /* the method we are using in our reques
 coap_block_t block = { .num = 0, .m = 0, .szx = 6 };
 uint16_t last_block1_mid = 0;
 
-#define DEFAULT_WAIT_TIME 90
+#define DEFAULT_WAIT_TIME 150
 
 unsigned int wait_seconds = DEFAULT_WAIT_TIME; /* default timeout in seconds */
 unsigned int wait_ms = 0;
 int obs_started = 0;
-unsigned int obs_seconds = 30;          /* default observe time */
+unsigned int obs_seconds = 100;          /* default observe time */
 unsigned int obs_ms = 0;                /* timeout for current subscription */
 int obs_ms_reset = 0;
 int doing_observe = 0;
@@ -378,7 +378,7 @@ nack_handler(coap_session_t *session COAP_UNUSED,
   }
   return;
 }
-
+static int o = 0;
 /*
  * Response handler used for coap_send() responses
  */
@@ -414,7 +414,7 @@ message_handler(coap_session_t *session COAP_UNUSED,
     return COAP_RESPONSE_OK;
   }
 
-  printf("SEAN\n");
+
 
   if (rcv_type == COAP_MESSAGE_RST) {
     coap_log_info("got RST\n");
@@ -437,9 +437,15 @@ message_handler(coap_session_t *session COAP_UNUSED,
     if (coap_get_data_large(received, &len, &databuf, &offset, &total)) {
       // printf("ssaaas\n");
       append_to_output(databuf, len);
-      // printf("sss\n");
-      if ((len + offset == total) && add_nl)
+      if (len+ offset == total){
+        printf("receive number %d\n",o);
+        o = o + 1;
+      }
+      if ((len + offset == total) && add_nl){
         append_to_output((const uint8_t *)"\n", 1);
+        
+      }
+        
     }
 
     /* Check if Block2 option is set */
@@ -484,6 +490,7 @@ message_handler(coap_session_t *session COAP_UNUSED,
   /* our job is done, we can exit at any time */
   ready = doing_observe ? coap_check_option(received,
                                             COAP_OPTION_OBSERVE, &opt_iter) == NULL : 1;
+  printf("ready : %d\n",ready);
   return COAP_RESPONSE_OK;
 }
 
@@ -1586,6 +1593,14 @@ get_session(coap_context_t *ctx,
   return session;
 }
 
+#define ACK_TIMEOUT ((coap_fixed_point_t){0,50})
+#define ACK_RANDOM_FACTOR ((coap_fixed_point_t){0,25})
+#define NON_TIMEOUT (coap_fixed_point_t){0,50}
+#define NON_RECEIVE_TIMEOUT ((coap_fixed_point_t){0,500})
+#define MAX_RETRANSMIT 4
+#define MAX_PAYLOADS_SET 10
+#define NSTART 1
+
 int
 main(int argc, char **argv) {
   coap_context_t  *ctx = NULL;
@@ -1868,6 +1883,12 @@ main(int argc, char **argv) {
     coap_log_err("cannot create client session\n");
     goto failed;
   }
+  coap_session_set_ack_timeout(session, ACK_TIMEOUT );
+  coap_session_set_ack_random_factor(session, ACK_RANDOM_FACTOR);
+  coap_session_set_non_timeout(session,NON_TIMEOUT);
+  coap_session_set_non_receive_timeout(session,NON_RECEIVE_TIMEOUT);
+  coap_session_set_max_payloads(session, MAX_PAYLOADS_SET);
+  coap_session_set_nstart(session,NSTART);
   /*
    * Prime the base token value, which coap_session_new_token() will increment
    * every time it is called to get an unique token.
@@ -1935,6 +1956,7 @@ main(int argc, char **argv) {
     if (obs_ms) {
       timeout_ms = min(wait_ms, obs_ms);
     } else {
+      
       timeout_ms = wait_ms;
     }
     if (repeat_count) {
@@ -1953,7 +1975,9 @@ main(int argc, char **argv) {
         }
       }
       if (obs_ms > 0 && !obs_ms_reset) {
+        
         if ((unsigned)result >= obs_ms) {
+          
           coap_log_debug("clear observation relationship\n");
           for (i = 0; i < tracked_tokens_count; i++) {
             if (tracked_tokens[i].observe) {
@@ -1997,6 +2021,7 @@ main(int argc, char **argv) {
           ready = 0;
           if (coap_send(session, pdu) == COAP_INVALID_MID) {
             coap_log_err("cannot send CoAP pdu\n");
+           
             quit = 1;
           }
           repeat_count--;
@@ -2005,7 +2030,10 @@ main(int argc, char **argv) {
       obs_ms_reset = 0;
     }
   }
-
+  printf("quit : %d\n",quit);
+  printf("repeat : %d\n",repeat_count);
+  printf("is_mcast : %d\n",is_mcast);
+  printf("exit\n"); 
   exit_code = 0;
 
 finish:
