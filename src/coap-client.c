@@ -141,7 +141,7 @@ uint16_t last_block1_mid = 0;
 unsigned int wait_seconds = DEFAULT_WAIT_TIME; /* default timeout in seconds */
 unsigned int wait_ms = 0;
 int obs_started = 0;
-unsigned int obs_seconds = 100;          /* default observe time */
+unsigned int obs_seconds = 120;          /* default observe time */
 unsigned int obs_ms = 0;                /* timeout for current subscription */
 int obs_ms_reset = 0;
 int doing_observe = 0;
@@ -1593,8 +1593,8 @@ get_session(coap_context_t *ctx,
   return session;
 }
 
-#define ACK_TIMEOUT ((coap_fixed_point_t){0,50})
-#define ACK_RANDOM_FACTOR ((coap_fixed_point_t){0,25})
+#define ACK_TIMEOUT ((coap_fixed_point_t){0,100})
+#define ACK_RANDOM_FACTOR ((coap_fixed_point_t){1,500})
 #define NON_TIMEOUT (coap_fixed_point_t){0,50}
 #define NON_RECEIVE_TIMEOUT ((coap_fixed_point_t){0,500})
 #define MAX_RETRANSMIT 4
