@@ -362,6 +362,7 @@ nack_handler(coap_session_t *session COAP_UNUSED,
   case COAP_NACK_TLS_LAYER_FAILED:
   case COAP_NACK_WS_LAYER_FAILED:
     coap_log_err("cannot send CoAP pdu\n");
+    printf("apa 3\n");
     quit = 1;
     break;
   case COAP_NACK_RST:
@@ -1596,7 +1597,7 @@ get_session(coap_context_t *ctx,
 #define ACK_TIMEOUT ((coap_fixed_point_t){0,50})
 #define ACK_RANDOM_FACTOR ((coap_fixed_point_t){1,500})
 #define NON_TIMEOUT (coap_fixed_point_t){0,50}
-#define NON_RECEIVE_TIMEOUT ((coap_fixed_point_t){0,500})
+#define NON_RECEIVE_TIMEOUT ((coap_fixed_point_t){3,0})
 #define MAX_RETRANSMIT 4
 #define MAX_PAYLOADS_SET 10
 #define NSTART 1
@@ -1941,6 +1942,7 @@ main(int argc, char **argv) {
     coap_show_pdu(COAP_LOG_INFO, pdu);
 
   if (coap_send(session, pdu) == COAP_INVALID_MID) {
+    printf("apa 1\n");
     coap_log_err("cannot send CoAP pdu\n");
     quit = 1;
   }
@@ -2026,6 +2028,7 @@ main(int argc, char **argv) {
           ready = 0;
           if (coap_send(session, pdu) == COAP_INVALID_MID) {
             coap_log_err("cannot send CoAP pdu\n");
+            printf("apa 2\n");
            
             quit = 1;
           }
