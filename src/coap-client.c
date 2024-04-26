@@ -1593,13 +1593,15 @@ get_session(coap_context_t *ctx,
   return session;
 }
 
-#define ACK_TIMEOUT ((coap_fixed_point_t){0,100})
+#define ACK_TIMEOUT ((coap_fixed_point_t){0,50})
 #define ACK_RANDOM_FACTOR ((coap_fixed_point_t){1,500})
 #define NON_TIMEOUT (coap_fixed_point_t){0,50}
 #define NON_RECEIVE_TIMEOUT ((coap_fixed_point_t){0,500})
 #define MAX_RETRANSMIT 4
 #define MAX_PAYLOADS_SET 10
 #define NSTART 1
+int arg_nstart = 1;
+int arg_max_payload = 10;
 
 int
 main(int argc, char **argv) {
@@ -1636,7 +1638,7 @@ main(int argc, char **argv) {
   coap_startup();
 
   while ((opt = getopt(argc, argv,
-                       "a:b:c:e:f:h:j:k:l:m:no:p:rs:t:u:v:wA:B:C:E:G:H:J:K:L:M:NO:P:R:T:UV:X:")) != -1) {
+                       "a:b:c:e:f:h:j:k:l:m:n:o:p:rs:t:u:v:wA:B:C:E:G:H:J:K:L:M:NO:P:R:T:UV:X:")) != -1) {
     switch (opt) {
     case 'a':
       strncpy(node_str, optarg, NI_MAXHOST - 1);
@@ -1687,7 +1689,8 @@ main(int argc, char **argv) {
       port_str[NI_MAXSERV - 1] = '\0';
       break;
     case 'm':
-      method = cmdline_method(optarg);
+      arg_max_payload = atoi(optarg);
+      //method = cmdline_method(optarg);
       break;
     case 'w':
       add_nl = 1;
@@ -1767,7 +1770,8 @@ main(int argc, char **argv) {
         fprintf(stderr, "Hop Limit has to be > 0 and < 256\n");
       break;
     case 'n':
-      verify_peer_cert = 0;
+      arg_nstart = atoi(optarg);
+      //verify_peer_cert = 0;
       break;
     case 'G':
       repeat_count = atoi(optarg);
@@ -1887,8 +1891,9 @@ main(int argc, char **argv) {
   coap_session_set_ack_random_factor(session, ACK_RANDOM_FACTOR);
   coap_session_set_non_timeout(session,NON_TIMEOUT);
   coap_session_set_non_receive_timeout(session,NON_RECEIVE_TIMEOUT);
-  coap_session_set_max_payloads(session, MAX_PAYLOADS_SET);
-  coap_session_set_nstart(session,NSTART);
+  printf("%d",arg_max_payload);
+  coap_session_set_max_payloads(session, arg_max_payload);
+  coap_session_set_nstart(session,arg_nstart);
   /*
    * Prime the base token value, which coap_session_new_token() will increment
    * every time it is called to get an unique token.
