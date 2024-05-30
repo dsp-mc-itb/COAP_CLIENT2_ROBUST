@@ -1690,8 +1690,8 @@ main(int argc, char **argv) {
       port_str[NI_MAXSERV - 1] = '\0';
       break;
     case 'm':
-      arg_max_payload = atoi(optarg);
-      //method = cmdline_method(optarg);
+      //arg_max_payload = atoi(optarg);
+      method = cmdline_method(optarg);
       break;
     case 'w':
       add_nl = 1;
@@ -1721,8 +1721,9 @@ main(int argc, char **argv) {
       cmdline_content_type(optarg, COAP_OPTION_CONTENT_TYPE);
       break;
     case 'M':
-      cert_file = optarg;
-      is_rpk_not_cert = 1;
+    arg_max_payload = atoi(optarg);
+      //cert_file = optarg;
+      //is_rpk_not_cert = 1;
       break;
     case 'O':
       cmdline_option(optarg);
